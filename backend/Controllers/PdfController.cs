@@ -29,7 +29,11 @@ public class PdfController : ControllerBase
             return BadRequest("A non-empty PDF file is required.");
         }
 
-        if (!request.File.ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase))
+        var isPdf =
+            request.File.ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase) ||
+            request.File.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+
+        if (!isPdf)
         {
             return BadRequest("Only PDF files are accepted.");
         }
@@ -40,7 +44,11 @@ public class PdfController : ControllerBase
         }
 
         await using var inputStream = request.File.OpenReadStream();
-        var processedStream = await _pdfCropService.CropAsync(inputStream, request.Platform, cancellationToken);
+        var processedStream = await _pdfCropService.CropAsync(
+            inputStream,
+            request.Platform,
+            request.KeepInvoiceOnSeparatePage,
+            cancellationToken);
 
         return File(processedStream, "application/pdf", $"cropped-{request.Platform}.pdf");
     }

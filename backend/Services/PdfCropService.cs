@@ -7,39 +7,67 @@ namespace EComCropper.Api.Services;
 
 public class PdfCropService : IPdfCropService
 {
-    public async Task<MemoryStream> CropAsync(Stream inputPdfStream, string platform, CancellationToken cancellationToken = default)
+    public async Task<MemoryStream> CropAsync(
+        Stream inputPdfStream,
+        string platform,
+        bool keepInvoiceOnSeparatePage,
+        CancellationToken cancellationToken = default)
     {
         var outputStream = new MemoryStream();
 
         await Task.Run(() =>
         {
             using var reader = new PdfReader(inputPdfStream);
-            using var writer = new PdfWriter(outputStream, new WriterProperties().SetFullCompressionMode(true));
+            using var writer = new PdfWriter(outputStream);
+            writer.SetCloseStream(false);
             using var sourceDocument = new PdfDocument(reader);
             using var destinationDocument = new PdfDocument(writer);
 
             var pageCount = sourceDocument.GetNumberOfPages();
-            var targetPageSize = PdfCropHelper.GetTarget4x6Page();
+            var cropRegions = PdfCropHelper.GetCropRegions(platform, keepInvoiceOnSeparatePage);
 
             for (var pageNumber = 1; pageNumber <= pageCount; pageNumber++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var sourcePage = sourceDocument.GetPage(pageNumber);
-                var sourcePageSize = sourcePage.GetPageSize();
-                var cropArea = PdfCropHelper.GetCropRectangle(sourcePageSize, platform);
+                var sourcePageXObject = sourcePage.CopyAsFormXObject(destinationDocument);
 
-                sourcePage.SetCropBox(cropArea);
-                sourcePage.SetMediaBox(cropArea);
+                foreach (var cropRegion in cropRegions)
+                {
+                    var sourceBounds = cropRegion.SourceBounds;
+                    var targetPageSize = cropRegion.OutputPageSize;
+                    var destinationPage = destinationDocument.AddNewPage(new PageSize(targetPageSize));
+                    var pageCanvas = new PdfCanvas(destinationPage);
 
-                var destinationPage = destinationDocument.AddNewPage(new PageSize(targetPageSize));
-                var pageCanvas = new PdfCanvas(destinationPage);
-                var croppedXObject = sourcePage.CopyAsFormXObject(destinationDocument);
+                    pageCanvas.SaveState();
+                    
+                    if (cropRegion.RenderMode == CropRenderMode.OriginalPageWithCropBox)
+                    {
+                        if (cropRegion.OutputCropBox is not null)
+                        {
+                            destinationPage.SetCropBox(cropRegion.OutputCropBox);
+                        }
 
-                pageCanvas.AddXObjectFittedIntoRectangle(
-                    croppedXObject,
-                    new Rectangle(0, 0, targetPageSize.GetWidth(), targetPageSize.GetHeight())
-                );
+                        pageCanvas.AddXObjectAt(sourcePageXObject, 0, 0);
+                    }
+                    else
+                    {
+                        pageCanvas.Rectangle(0, 0, targetPageSize.GetWidth(), targetPageSize.GetHeight());
+                        pageCanvas.Clip();
+                        pageCanvas.EndPath();
+                        pageCanvas.ConcatMatrix(
+                            1,
+                            0,
+                            0,
+                            1,
+                            -sourceBounds.GetX(),
+                            -sourceBounds.GetY());
+                        pageCanvas.AddXObjectAt(sourcePageXObject, 0, 0);
+                    }
+
+                    pageCanvas.RestoreState();
+                }
             }
         }, cancellationToken);
 

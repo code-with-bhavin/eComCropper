@@ -11,3 +11,11 @@ backend/out/
 .vscode/
 .idea/
 .DS_Store
+
+
+*.angular/
+dist/
+.obj/
+.bin/
+*.bin
+

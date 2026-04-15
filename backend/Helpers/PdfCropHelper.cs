@@ -4,19 +4,82 @@ namespace EComCropper.Api.Helpers;
 
 public static class PdfCropHelper
 {
-    public static Rectangle GetCropRectangle(Rectangle pageSize, string platform)
-    {
-        var width = pageSize.GetWidth();
-        var height = pageSize.GetHeight();
+    private static readonly Rectangle A4PageSize = new(0, 0, 595, 842);
+    private static readonly Rectangle HalfPageSize = new(0, 0, 595, 421);
 
-        return platform.ToLowerInvariant() switch
+    // Extracted from the provided ecropper Meesho PDF.
+    private static readonly Rectangle MeeshoLabelCropBox = new(0, 471.92f, 800, 1000);
+
+    public static IReadOnlyList<CropRegion> GetCropRegions(string platform, bool keepInvoiceOnSeparatePage) =>
+        platform.ToLowerInvariant() switch
         {
-            "meesho" => new Rectangle(width * 0.15f, height * 0.15f, width * 0.7f, height * 0.7f),
-            "flipkart" => new Rectangle(width * 0.05f, height * 0.4f, width * 0.9f, height * 0.55f),
-            "amazon" => new Rectangle(width * 0.03f, height * 0.03f, width * 0.94f, height * 0.94f),
+            "meesho" => BuildMeeshoRegions(keepInvoiceOnSeparatePage),
+            "flipkart" or "amazon" => BuildDefaultHalfPageRegions(keepInvoiceOnSeparatePage),
             _ => throw new ArgumentException("Unsupported platform type.")
         };
+
+    private static IReadOnlyList<CropRegion> BuildMeeshoRegions(bool keepInvoiceOnSeparatePage)
+    {
+        var regions = new List<CropRegion>
+        {
+            new()
+            {
+                SourceBounds = A4PageSize,
+                OutputPageSize = A4PageSize,
+                OutputCropBox = MeeshoLabelCropBox,
+                RenderMode = CropRenderMode.OriginalPageWithCropBox
+            }
+        };
+
+        if (keepInvoiceOnSeparatePage)
+        {
+            regions.Add(new CropRegion
+            {
+                SourceBounds = new Rectangle(0, 0, 595, 421),
+                OutputPageSize = HalfPageSize,
+                RenderMode = CropRenderMode.TranslatedCrop
+            });
+        }
+
+        return regions;
     }
 
-    public static Rectangle GetTarget4x6Page() => new Rectangle(288f, 432f);
+    private static IReadOnlyList<CropRegion> BuildDefaultHalfPageRegions(bool keepInvoiceOnSeparatePage)
+    {
+        var regions = new List<CropRegion>
+        {
+            new()
+            {
+                SourceBounds = new Rectangle(0, 421, 595, 421),
+                OutputPageSize = HalfPageSize,
+                RenderMode = CropRenderMode.TranslatedCrop
+            }
+        };
+
+        if (keepInvoiceOnSeparatePage)
+        {
+            regions.Add(new CropRegion
+            {
+                SourceBounds = new Rectangle(0, 0, 595, 421),
+                OutputPageSize = HalfPageSize,
+                RenderMode = CropRenderMode.TranslatedCrop
+            });
+        }
+
+        return regions;
+    }
+}
+
+public sealed class CropRegion
+{
+    public Rectangle SourceBounds { get; init; } = default!;
+    public Rectangle OutputPageSize { get; init; } = default!;
+    public Rectangle? OutputCropBox { get; init; }
+    public CropRenderMode RenderMode { get; init; } = CropRenderMode.TranslatedCrop;
+}
+
+public enum CropRenderMode
+{
+    TranslatedCrop,
+    OriginalPageWithCropBox
 }
