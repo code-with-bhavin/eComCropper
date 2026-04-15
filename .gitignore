@@ -19,3 +19,5 @@ dist/
 .bin/
 *.bin
 
+/frontend/tools/PdfInspector/bin/Debug/net8.0
+/frontend/tools/PdfInspector/obj
