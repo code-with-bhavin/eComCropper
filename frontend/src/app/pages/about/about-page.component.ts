@@ -3,11 +3,11 @@ import { Component } from '@angular/core';
 @Component({
   standalone: true,
   template: `
-    <section class="container" style="padding-top:2rem;">
-      <div class="card" style="padding:1.5rem;">
-        <h1 class="section-title">About ECom Cropper</h1>
+    <section class="container page-wrap">
+      <div class="card">
+        <h1 class="section-title">About</h1>
         <p class="section-subtitle">
-          ECom Cropper is a lightweight SaaS-style utility for sellers who need fast shipping label formatting without signups or complex setup.
+          Aa tool e-commerce sellers mate banavelo simple utility che je label PDFs ne quick print format ma convert kare che.
         </p>
       </div>
     </section>

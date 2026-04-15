@@ -8,44 +8,74 @@ import { PdfService, PlatformType } from '../../services/pdf.service';
   imports: [CommonModule, FormsModule],
   styles: [
     `
-      .tabs { display: flex; gap: 0.5rem; }
-      .tab { border: 1px solid #bcccdc; background: #fff; padding: 0.5rem 1rem; border-radius: 9px; cursor: pointer; }
-      .tab.active { background: #ebf2ff; border-color: #2962ff; color: #1f4fd4; }
-      .dropzone {
-        border: 2px dashed #9fb3c8;
-        border-radius: 12px;
-        padding: 2rem;
-        text-align: center;
-        background: #f8fbff;
+      .tool-wrap {
+        display: grid;
+        gap: 0.9rem;
       }
-      .dropzone.dragging { border-color: #2962ff; background: #ebf2ff; }
-      .error { color: #d64545; margin-top: 0.75rem; }
-      .progress { height: 10px; background: #d9e2ec; border-radius: 10px; overflow: hidden; margin-top: 0.75rem; }
-      .bar { height: 100%; background: #2962ff; transition: width 0.2s; }
-      .toggle {
+
+      .tabs {
         display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem;
-        border: 1px solid #d9e2ec;
-        border-radius: 12px;
-        background: #f8fbff;
-        font-weight: 600;
-        color: #243b53;
+        gap: 0.5rem;
+        flex-wrap: wrap;
       }
-      .toggle input {
-        width: 1.1rem;
-        height: 1.1rem;
+
+      .tab {
+        border: 1px solid #d0d0d0;
+        background: #fff;
+        padding: 0.5rem 0.9rem;
+        border-radius: 7px;
+        cursor: pointer;
+      }
+
+      .tab.active {
+        background: #ecfdf5;
+        border-color: #34d399;
+        color: #065f46;
+        font-weight: 600;
+      }
+
+      .dropzone {
+        border: 1.5px dashed #bcbcbc;
+        border-radius: 10px;
+        padding: 1.4rem;
+        text-align: center;
+        background: #fafafa;
+      }
+
+      .dropzone.dragging {
+        border-color: #10b981;
+        background: #f0fdf4;
+      }
+
+      .error {
+        color: #b91c1c;
+      }
+
+      .progress {
+        height: 9px;
+        background: #e7e7e7;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .bar {
+        height: 100%;
+        background: #059669;
+        transition: width 0.2s;
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.65rem;
+        flex-wrap: wrap;
       }
     `
   ],
   template: `
-    <section class="container" style="padding-top:2rem;">
-      <div class="card" style="padding:1.5rem;display:grid;gap:1rem;">
-        <h1 class="section-title">{{ platformLabel }} shipping label crop</h1>
-        <p class="section-subtitle">
-          Upload an A4 marketplace PDF. By default we keep only the top-half shipping label from each page.
-        </p>
+    <section class="container page-wrap">
+      <div class="card tool-wrap">
+        <h1 class="section-title">Label Crop Tool</h1>
+        <p class="section-subtitle">Minimal UI: choose PDF + platform + process.</p>
 
         <div class="tabs">
           <button class="tab" [class.active]="platform === 'meesho'" (click)="setPlatform('meesho')">Meesho</button>
@@ -60,7 +90,7 @@ import { PdfService, PlatformType } from '../../services/pdf.service';
           (dragleave)="onDragLeave($event)"
           (drop)="onDrop($event)"
         >
-          <p>{{ selectedFile?.name || 'Drag & drop PDF file here or choose manually.' }}</p>
+          <p style="margin-top:0;">{{ selectedFile?.name || 'PDF ahi drop karo ke choose karo' }}</p>
           <input type="file" accept="application/pdf" (change)="onFileInput($event)" />
         </div>
 
@@ -75,16 +105,12 @@ import { PdfService, PlatformType } from '../../services/pdf.service';
           <div class="bar" [style.width.%]="progress"></div>
         </div>
 
-        <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+        <div class="actions">
           <button class="btn btn-primary" [disabled]="isProcessing" (click)="processFile()">
             {{ isProcessing ? 'Preparing...' : 'Prepare Shipping Labels' }}
           </button>
-          <button class="btn" style="background:#fff;border:1px solid #bcccdc;" [disabled]="!processedBlob" (click)="download()">
-            Download Processed PDF
-          </button>
-          <button class="btn" style="background:#fff0f0;border:1px solid #fcc;" *ngIf="errorMessage" (click)="retry()">
-            Retry
-          </button>
+          <button class="btn" [disabled]="!processedBlob" (click)="download()">Download PDF</button>
+          <button class="btn" style="border-color:#fecaca;background:#fff1f2;" *ngIf="errorMessage" (click)="retry()">Retry</button>
         </div>
       </div>
     </section>
