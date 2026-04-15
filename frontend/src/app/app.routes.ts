@@ -7,7 +7,25 @@ import { ContactPageComponent } from './pages/contact/contact-page.component';
 
 export const routes: Routes = [
   { path: '', component: HomePageComponent, title: 'ECom Cropper | Home' },
-  { path: 'tool', component: ToolPageComponent, title: 'ECom Cropper | Label Cropper Tool' },
+  { path: 'tool', redirectTo: 'crop/meesho', pathMatch: 'full' },
+  {
+    path: 'crop/meesho',
+    component: ToolPageComponent,
+    title: 'ECom Cropper | Meesho Crop Tool',
+    data: { platform: 'meesho' }
+  },
+  {
+    path: 'crop/flipkart',
+    component: ToolPageComponent,
+    title: 'ECom Cropper | Flipkart Crop Tool',
+    data: { platform: 'flipkart' }
+  },
+  {
+    path: 'crop/amazon',
+    component: ToolPageComponent,
+    title: 'ECom Cropper | Amazon Crop Tool',
+    data: { platform: 'amazon' }
+  },
   { path: 'about', component: AboutPageComponent, title: 'ECom Cropper | About' },
   { path: 'privacy', component: PrivacyPageComponent, title: 'ECom Cropper | Privacy Policy' },
   { path: 'contact', component: ContactPageComponent, title: 'ECom Cropper | Contact' },

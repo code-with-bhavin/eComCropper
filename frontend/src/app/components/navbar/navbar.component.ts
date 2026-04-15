@@ -8,8 +8,9 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   styles: [
     `
       .nav {
-        background: #ffffff;
-        border-bottom: 1px solid #e5e5e5;
+        background: rgba(255, 255, 255, 0.82);
+        border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+        backdrop-filter: blur(16px);
         position: sticky;
         top: 0;
         z-index: 10;
@@ -25,9 +26,10 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
       .brand {
         text-decoration: none;
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: #111;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #102a43;
+        letter-spacing: 0.02em;
       }
 
       .links {
@@ -38,15 +40,21 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
       .links a {
         text-decoration: none;
-        padding: 0.4rem 0.65rem;
-        border-radius: 6px;
-        color: #444;
+        padding: 0.48rem 0.82rem;
+        border-radius: 999px;
+        color: #52606d;
         font-size: 0.92rem;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      .links a:hover {
+        background: #f0f4f8;
+        color: #102a43;
       }
 
       .links a.active {
-        background: #ecfdf5;
-        color: #047857;
+        background: linear-gradient(135deg, #0f6cbd, #0b4f8a);
+        color: #fff;
         font-weight: 600;
       }
 
@@ -62,10 +70,12 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   template: `
     <header class="nav">
       <div class="container nav-inner">
-        <a class="brand" routerLink="/">eCropper Clone</a>
+        <a class="brand" routerLink="/">eComCropper</a>
         <nav class="links">
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-          <a routerLink="/tool" routerLinkActive="active">Crop Tool</a>
+          <a routerLink="/crop/meesho" routerLinkActive="active">Meesho</a>
+          <a routerLink="/crop/flipkart" routerLinkActive="active">Flipkart</a>
+          <a routerLink="/crop/amazon" routerLinkActive="active">Amazon</a>
           <a routerLink="/about" routerLinkActive="active">About</a>
           <a routerLink="/privacy" routerLinkActive="active">Privacy</a>
           <a routerLink="/contact" routerLinkActive="active">Contact</a>
