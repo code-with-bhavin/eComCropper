@@ -9,6 +9,7 @@ public static class PdfCropHelper
 
     // Extracted from the provided ecropper Meesho PDF.
     private static readonly Rectangle MeeshoLabelCropBox = new(0, 471.92f, 800, 1000);
+    private static readonly Rectangle MeeshoInvoiceCropBox = new(0, 200.22f, 800, 291.7f);
 
     public static IReadOnlyList<CropRegion> GetCropRegions(string platform, bool keepInvoiceOnSeparatePage) =>
         platform.ToLowerInvariant() switch
@@ -35,9 +36,10 @@ public static class PdfCropHelper
         {
             regions.Add(new CropRegion
             {
-                SourceBounds = new Rectangle(0, 0, 595, 421),
-                OutputPageSize = HalfPageSize,
-                RenderMode = CropRenderMode.TranslatedCrop
+                SourceBounds = A4PageSize,
+                OutputPageSize = A4PageSize,
+                OutputCropBox = MeeshoInvoiceCropBox,
+                RenderMode = CropRenderMode.OriginalPageWithCropBox
             });
         }
 
