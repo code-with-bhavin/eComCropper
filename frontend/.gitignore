@@ -1,0 +1,12 @@
+*.angular/
+dist/
+.obj/
+.bin/
+*.bin
+
+/bin
+/obj
+
+
+tools\PdfInspector\bin
+tools\PdfInspector\obj

@@ -51,12 +51,16 @@
               "buildTarget": "ecom-cropper-frontend:build:production"
             },
             "development": {
-              "buildTarget": "ecom-cropper-frontend:build:development"
+              "buildTarget": "ecom-cropper-frontend:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "6e37feff-59a2-4d9d-9138-6dd4cb5df9aa"
   }
 }

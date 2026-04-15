@@ -22,13 +22,30 @@ import { PdfService, PlatformType } from '../../services/pdf.service';
       .error { color: #d64545; margin-top: 0.75rem; }
       .progress { height: 10px; background: #d9e2ec; border-radius: 10px; overflow: hidden; margin-top: 0.75rem; }
       .bar { height: 100%; background: #2962ff; transition: width 0.2s; }
+      .toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        border: 1px solid #d9e2ec;
+        border-radius: 12px;
+        background: #f8fbff;
+        font-weight: 600;
+        color: #243b53;
+      }
+      .toggle input {
+        width: 1.1rem;
+        height: 1.1rem;
+      }
     `
   ],
   template: `
     <section class="container" style="padding-top:2rem;">
       <div class="card" style="padding:1.5rem;display:grid;gap:1rem;">
-        <h1 class="section-title">Label Cropper Tool</h1>
-        <p class="section-subtitle">Upload a PDF, choose platform, and download a print-ready file.</p>
+        <h1 class="section-title">{{ platformLabel }} shipping label crop</h1>
+        <p class="section-subtitle">
+          Upload an A4 marketplace PDF. By default we keep only the top-half shipping label from each page.
+        </p>
 
         <div class="tabs">
           <button class="tab" [class.active]="platform === 'meesho'" (click)="setPlatform('meesho')">Meesho</button>
@@ -47,6 +64,11 @@ import { PdfService, PlatformType } from '../../services/pdf.service';
           <input type="file" accept="application/pdf" (change)="onFileInput($event)" />
         </div>
 
+        <label class="toggle">
+          <input type="checkbox" [(ngModel)]="keepInvoiceOnSeparatePage" />
+          <span>Keep invoice on separate page</span>
+        </label>
+
         <div *ngIf="errorMessage" class="error">{{ errorMessage }}</div>
 
         <div *ngIf="progress > 0" class="progress">
@@ -55,7 +77,7 @@ import { PdfService, PlatformType } from '../../services/pdf.service';
 
         <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
           <button class="btn btn-primary" [disabled]="isProcessing" (click)="processFile()">
-            {{ isProcessing ? 'Processing...' : 'Upload & Process' }}
+            {{ isProcessing ? 'Preparing...' : 'Prepare Shipping Labels' }}
           </button>
           <button class="btn" style="background:#fff;border:1px solid #bcccdc;" [disabled]="!processedBlob" (click)="download()">
             Download Processed PDF
@@ -72,12 +94,17 @@ export class ToolPageComponent {
   platform: PlatformType = 'meesho';
   selectedFile: File | null = null;
   processedBlob: Blob | null = null;
+  keepInvoiceOnSeparatePage = false;
   progress = 0;
   isProcessing = false;
   isDragging = false;
   errorMessage = '';
 
   constructor(private readonly pdfService: PdfService) {}
+
+  get platformLabel(): string {
+    return this.platform.charAt(0).toUpperCase() + this.platform.slice(1);
+  }
 
   setPlatform(platform: PlatformType): void {
     this.platform = platform;
@@ -116,7 +143,7 @@ export class ToolPageComponent {
     this.processedBlob = null;
     this.progress = 0;
 
-    this.pdfService.cropLabel(this.selectedFile, this.platform).subscribe({
+    this.pdfService.cropLabel(this.selectedFile, this.platform, this.keepInvoiceOnSeparatePage).subscribe({
       next: (event) => {
         this.progress = event.progress;
         if (event.blob) {
@@ -156,7 +183,9 @@ export class ToolPageComponent {
       return;
     }
 
-    if (file.type !== 'application/pdf') {
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+    if (!isPdf) {
       this.errorMessage = 'Only PDF files are allowed.';
       this.selectedFile = null;
       return;

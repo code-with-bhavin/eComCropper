@@ -1,4 +1,4 @@
-import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, filter, map } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -16,10 +16,11 @@ export class PdfService {
 
   constructor(private readonly http: HttpClient) {}
 
-  cropLabel(file: File, platform: PlatformType): Observable<UploadProgress> {
+  cropLabel(file: File, platform: PlatformType, keepInvoiceOnSeparatePage: boolean): Observable<UploadProgress> {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('platform', platform);
+    formData.append('keepInvoiceOnSeparatePage', String(keepInvoiceOnSeparatePage));
 
     return this.http
       .post(`${this.baseUrl}/pdf/crop`, formData, {
@@ -35,9 +36,11 @@ export class PdfService {
             return { progress };
           }
 
+          const response = event as HttpResponse<Blob>;
+
           return {
             progress: 100,
-            blob: event.body ?? undefined
+            blob: response.body ?? undefined
           };
         })
       );
