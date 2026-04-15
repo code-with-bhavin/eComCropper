@@ -4,9 +4,9 @@ import { Component } from '@angular/core';
   selector: 'app-footer',
   standalone: true,
   template: `
-    <footer style="margin-top:3rem;border-top:1px solid #d9e2ec;background:#fff;">
-      <div class="container" style="padding:1.2rem;color:#486581;font-size:0.9rem;">
-        © {{ year }} ECom Cropper · Seller tools for quick shipping label formatting.
+    <footer style="margin-top:2.5rem;border-top:1px solid #e5e5e5;background:#fff;">
+      <div class="container" style="padding:1rem 0;font-size:0.88rem;color:#666;">
+        © {{ year }} eCropper Clone · Simple PDF Label Crop Utility
       </div>
     </footer>
   `
