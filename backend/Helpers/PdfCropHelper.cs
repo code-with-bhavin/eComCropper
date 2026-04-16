@@ -11,6 +11,9 @@ public static class PdfCropHelper
     private const float MeeshoInvoiceY = 200.22f;
     private const float MeeshoInvoiceHeight = 291.7f;
 
+    // Used by Amazon/Flipkart "Remove Invoice With Extra Space".
+    private const float DefaultExtraSpacePoints = 60f;
+
     public static IReadOnlyList<CropRegion> GetCropRegions(string platform, bool keepInvoiceOnSeparatePage, Rectangle sourcePageSize) =>
         platform.ToLowerInvariant() switch
         {
@@ -18,6 +21,12 @@ public static class PdfCropHelper
             "flipkart" or "amazon" => BuildDefaultHalfPageRegions(keepInvoiceOnSeparatePage, sourcePageSize),
             _ => throw new ArgumentException("Unsupported platform type.")
         };
+
+    public static IReadOnlyList<CropRegion> GetAmazonCropRegions(bool removeInvoiceWithExtraSpace, Rectangle sourcePageSize) =>
+        BuildMarketplaceSingleLabelRegions(sourcePageSize, removeInvoiceWithExtraSpace);
+
+    public static IReadOnlyList<CropRegion> GetFlipkartCropRegions(bool removeInvoiceWithExtraSpace, Rectangle sourcePageSize) =>
+        BuildMarketplaceSingleLabelRegions(sourcePageSize, removeInvoiceWithExtraSpace);
 
     private static IReadOnlyList<CropRegion> BuildMeeshoRegions(bool keepInvoiceOnSeparatePage, Rectangle pageSize)
     {
@@ -78,6 +87,28 @@ public static class PdfCropHelper
         }
 
         return regions;
+    }
+
+    private static IReadOnlyList<CropRegion> BuildMarketplaceSingleLabelRegions(Rectangle pageSize, bool removeInvoiceWithExtraSpace)
+    {
+        var normalizedPage = new Rectangle(0, 0, pageSize.GetWidth(), pageSize.GetHeight());
+        var halfHeight = normalizedPage.GetHeight() / 2f;
+
+        // Default "Remove Invoice" uses the top half only.
+        // "Remove Invoice With Extra Space" extends the crop a bit downward to keep blank padding
+        // that typically exists between label and invoice on many marketplace PDFs.
+        var extra = removeInvoiceWithExtraSpace ? DefaultExtraSpacePoints : 0f;
+        var labelHeight = Math.Min(normalizedPage.GetHeight(), halfHeight + extra);
+
+        return
+        [
+            new CropRegion
+            {
+                SourceBounds = new Rectangle(0, normalizedPage.GetHeight() - labelHeight, normalizedPage.GetWidth(), labelHeight),
+                OutputPageSize = new Rectangle(0, 0, normalizedPage.GetWidth(), labelHeight),
+                RenderMode = CropRenderMode.TranslatedCrop
+            }
+        ];
     }
 }
 

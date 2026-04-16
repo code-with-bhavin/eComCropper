@@ -11,4 +11,14 @@ public interface IPdfCropService
         bool orderNumberSorting,
         string? labelText,
         CancellationToken cancellationToken = default);
+
+    Task<MemoryStream> CropAmazonAsync(
+        Stream inputPdfStream,
+        bool removeInvoiceWithExtraSpace,
+        CancellationToken cancellationToken = default);
+
+    Task<MemoryStream> CropFlipkartAsync(
+        Stream inputPdfStream,
+        bool removeInvoiceWithExtraSpace,
+        CancellationToken cancellationToken = default);
 }

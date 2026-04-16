@@ -29,3 +29,51 @@ Processes a PDF based on selected marketplace crop profile and returns a cropped
 #### Error Response
 - `400 Bad Request`
 - Invalid file, missing file, or invalid platform.
+
+---
+
+### `POST /api/pdf/amazon/crop`
+
+Processes Amazon shipping label PDFs and returns a cropped PDF. Supports single or multiple PDF uploads (merged into a single output PDF).
+
+#### Request
+- Content-Type: `multipart/form-data`
+- Fields:
+  - `files` (optional, repeatable): One or more PDF files
+  - `file` (optional): Single PDF file (legacy)
+  - `removeInvoiceWithExtraSpace` (optional): `true` | `false`
+    - `false`: Remove invoice
+    - `true`: Remove invoice with extra space from label region
+
+#### Success Response
+- `200 OK`
+- Content-Type: `application/pdf`
+- Body: processed PDF stream (single merged PDF when multiple files are uploaded)
+
+#### Error Response
+- `400 Bad Request`
+- Invalid file or missing file.
+
+---
+
+### `POST /api/pdf/flipkart/crop`
+
+Processes Flipkart shipping label PDFs and returns a cropped PDF. Supports single or multiple PDF uploads (merged into a single output PDF).
+
+#### Request
+- Content-Type: `multipart/form-data`
+- Fields:
+  - `files` (optional, repeatable): One or more PDF files
+  - `file` (optional): Single PDF file (legacy)
+  - `removeInvoiceWithExtraSpace` (optional): `true` | `false`
+    - `false`: Remove invoice
+    - `true`: Remove invoice with extra space from label region
+
+#### Success Response
+- `200 OK`
+- Content-Type: `application/pdf`
+- Body: processed PDF stream (single merged PDF when multiple files are uploaded)
+
+#### Error Response
+- `400 Bad Request`
+- Invalid file or missing file.

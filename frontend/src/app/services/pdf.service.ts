@@ -5,6 +5,8 @@ import { environment } from '../../environments/environment';
 
 export type PlatformType = 'meesho' | 'flipkart' | 'amazon';
 
+export type MarketplaceProcessingOption = 'removeInvoice' | 'removeInvoiceExtraSpace';
+
 export interface UploadProgress {
   progress: number;
   blob?: Blob;
@@ -50,6 +52,90 @@ export class PdfService {
 
     return this.http
       .post(`${this.baseUrl}/pdf/crop`, formData, {
+        responseType: 'blob',
+        observe: 'events',
+        reportProgress: true
+      })
+      .pipe(
+        filter((event: HttpEvent<Blob>) => event.type === HttpEventType.UploadProgress || event.type === HttpEventType.Response),
+        map((event: HttpEvent<Blob>) => {
+          if (event.type === HttpEventType.UploadProgress) {
+            const progress = event.total ? Math.round((event.loaded / event.total) * 100) : 0;
+            return { progress };
+          }
+
+          const response = event as HttpResponse<Blob>;
+          const contentDisposition = response.headers.get('content-disposition') ?? '';
+          const fileName = parseContentDispositionFileName(contentDisposition) ?? undefined;
+          const mimeType = response.headers.get('content-type') ?? response.body?.type ?? undefined;
+
+          return {
+            progress: 100,
+            blob: response.body ?? undefined,
+            fileName,
+            mimeType
+          };
+        })
+      );
+  }
+
+  cropAmazonLabels(files: File[], processingOption: MarketplaceProcessingOption): Observable<UploadProgress> {
+    const formData = new FormData();
+
+    for (const file of files) {
+      formData.append('files', file);
+    }
+
+    if (files.length === 1) {
+      formData.append('file', files[0]);
+    }
+
+    formData.append('removeInvoiceWithExtraSpace', String(processingOption === 'removeInvoiceExtraSpace'));
+
+    return this.http
+      .post(`${this.baseUrl}/pdf/amazon/crop`, formData, {
+        responseType: 'blob',
+        observe: 'events',
+        reportProgress: true
+      })
+      .pipe(
+        filter((event: HttpEvent<Blob>) => event.type === HttpEventType.UploadProgress || event.type === HttpEventType.Response),
+        map((event: HttpEvent<Blob>) => {
+          if (event.type === HttpEventType.UploadProgress) {
+            const progress = event.total ? Math.round((event.loaded / event.total) * 100) : 0;
+            return { progress };
+          }
+
+          const response = event as HttpResponse<Blob>;
+          const contentDisposition = response.headers.get('content-disposition') ?? '';
+          const fileName = parseContentDispositionFileName(contentDisposition) ?? undefined;
+          const mimeType = response.headers.get('content-type') ?? response.body?.type ?? undefined;
+
+          return {
+            progress: 100,
+            blob: response.body ?? undefined,
+            fileName,
+            mimeType
+          };
+        })
+      );
+  }
+
+  cropFlipkartLabels(files: File[], processingOption: MarketplaceProcessingOption): Observable<UploadProgress> {
+    const formData = new FormData();
+
+    for (const file of files) {
+      formData.append('files', file);
+    }
+
+    if (files.length === 1) {
+      formData.append('file', files[0]);
+    }
+
+    formData.append('removeInvoiceWithExtraSpace', String(processingOption === 'removeInvoiceExtraSpace'));
+
+    return this.http
+      .post(`${this.baseUrl}/pdf/flipkart/crop`, formData, {
         responseType: 'blob',
         observe: 'events',
         reportProgress: true

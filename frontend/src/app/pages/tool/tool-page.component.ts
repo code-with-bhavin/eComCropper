@@ -3,7 +3,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { PdfService, PlatformType } from '../../services/pdf.service';
+import { MarketplaceProcessingOption, PdfService, PlatformType } from '../../services/pdf.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
 type ProcessingHistoryItem = {
@@ -97,13 +97,36 @@ type ProcessingHistoryItem = {
                 class="mt-4 w-full text-sm"
                 type="file"
                 accept="application/pdf"
-                [attr.multiple]="platform === 'meesho' ? '' : null"
+                [attr.multiple]="platform === 'meesho' || platform === 'amazon' || platform === 'flipkart' ? '' : null"
                 (change)="onFileInput($event)"
               />
             </div>
 
             <div class="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
               <div class="text-sm font-extrabold text-slate-900">Label Options</div>
+              <div *ngIf="platform === 'amazon' || platform === 'flipkart'" class="mt-3 grid gap-3">
+                <div class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Processing Option:</div>
+                <label class="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                  <input
+                    type="radio"
+                    class="size-4 accent-blue-600"
+                    name="marketplace-processing"
+                    [value]="'removeInvoice'"
+                    [(ngModel)]="marketplaceProcessingOption"
+                  />
+                  <span>Remove Invoice</span>
+                </label>
+                <label class="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                  <input
+                    type="radio"
+                    class="size-4 accent-blue-600"
+                    name="marketplace-processing"
+                    [value]="'removeInvoiceExtraSpace'"
+                    [(ngModel)]="marketplaceProcessingOption"
+                  />
+                  <span>Remove Invoice With Extra Space (From label)</span>
+                </label>
+              </div>
               <div *ngIf="platform === 'meesho'" class="mt-3 grid gap-3 sm:grid-cols-2">
                 <label class="flex items-center gap-3 text-sm font-semibold text-slate-700">
                   <input type="checkbox" class="size-4 accent-blue-600" [(ngModel)]="pickupSorting" />
@@ -123,7 +146,7 @@ type ProcessingHistoryItem = {
                 </label>
               </div>
 
-              <label class="mt-3 flex items-center gap-3 text-sm font-semibold text-slate-700">
+              <label *ngIf="platform === 'meesho'" class="mt-3 flex items-center gap-3 text-sm font-semibold text-slate-700">
                 <input type="checkbox" class="size-4 accent-blue-600" [(ngModel)]="keepInvoiceOnSeparatePage" />
                 <span>Keep invoice on separate page</span>
               </label>
@@ -240,6 +263,7 @@ export class ToolPageComponent implements OnDestroy {
   processedBlob: Blob | null = null;
   private processedBlobUrl: string | null = null;
   keepInvoiceOnSeparatePage = false;
+  marketplaceProcessingOption: MarketplaceProcessingOption = 'removeInvoice';
   pickupSorting = false;
   skuSorting = true;
   orderNumberSorting = false;
@@ -360,17 +384,22 @@ export class ToolPageComponent implements OnDestroy {
     this.releaseProcessedBlobUrl();
     this.progress = 0;
 
-    this.pdfService
-      .cropLabels(this.selectedFiles, {
-        platform: this.platform,
-        keepInvoiceOnSeparatePage: this.keepInvoiceOnSeparatePage,
-        pickupSorting: this.pickupSorting,
-        skuSorting: this.skuSorting,
-        orderNumberSorting: this.orderNumberSorting,
-        returnOriginalWithInvoice: this.returnOriginalWithInvoice,
-        labelText: this.printTextOnLabel ? this.labelText : ''
-      })
-      .subscribe({
+    const request$ =
+      this.platform === 'amazon'
+        ? this.pdfService.cropAmazonLabels(this.selectedFiles, this.marketplaceProcessingOption)
+        : this.platform === 'flipkart'
+          ? this.pdfService.cropFlipkartLabels(this.selectedFiles, this.marketplaceProcessingOption)
+          : this.pdfService.cropLabels(this.selectedFiles, {
+              platform: this.platform,
+              keepInvoiceOnSeparatePage: this.keepInvoiceOnSeparatePage,
+              pickupSorting: this.pickupSorting,
+              skuSorting: this.skuSorting,
+              orderNumberSorting: this.orderNumberSorting,
+              returnOriginalWithInvoice: this.returnOriginalWithInvoice,
+              labelText: this.printTextOnLabel ? this.labelText : ''
+            });
+
+    request$.subscribe({
       next: (event) => {
         this.progress = event.progress;
         if (event.blob) {
@@ -449,12 +478,6 @@ export class ToolPageComponent implements OnDestroy {
     if (pdfFiles.length !== files.length) {
       this.errorMessage = 'Only PDF files are allowed.';
       this.selectedFiles = [];
-      return;
-    }
-
-    if (this.platform !== 'meesho' && pdfFiles.length > 1) {
-      this.errorMessage = `${this.platformLabel} currently supports only a single PDF at a time.`;
-      this.selectedFiles = [pdfFiles[0]];
       return;
     }
 
