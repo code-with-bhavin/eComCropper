@@ -1,5 +1,7 @@
 using EComCropper.Api.Models;
 using EComCropper.Api.Services;
+using iText.Kernel.Pdf;
+using iText.Kernel.Utils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EComCropper.Api.Controllers;
@@ -24,18 +26,32 @@ public class PdfController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Crop([FromForm] CropRequest request, CancellationToken cancellationToken)
     {
-        if (request.File is null || request.File.Length == 0)
+        var files = request.Files.Count > 0
+            ? request.Files
+            : request.File is null
+                ? []
+                : [request.File];
+
+        if (files.Count == 0 || files.All(file => file is null || file.Length == 0))
         {
-            return BadRequest("A non-empty PDF file is required.");
+            return BadRequest("At least one non-empty PDF file is required.");
         }
 
-        var isPdf =
-            request.File.ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase) ||
-            request.File.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
-
-        if (!isPdf)
+        foreach (var file in files)
         {
-            return BadRequest("Only PDF files are accepted.");
+            if (file is null || file.Length == 0)
+            {
+                return BadRequest("All uploaded files must be non-empty PDFs.");
+            }
+
+            var isPdf =
+                file.ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase) ||
+                file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+
+            if (!isPdf)
+            {
+                return BadRequest("Only PDF files are accepted.");
+            }
         }
 
         if (!AllowedPlatforms.Contains(request.Platform.ToLowerInvariant()))
@@ -43,13 +59,76 @@ public class PdfController : ControllerBase
             return BadRequest("Platform must be one of: meesho, flipkart, amazon.");
         }
 
-        await using var inputStream = request.File.OpenReadStream();
-        var processedStream = await _pdfCropService.CropAsync(
-            inputStream,
-            request.Platform,
-            request.KeepInvoiceOnSeparatePage,
-            cancellationToken);
+        var shouldMergeManyToSinglePdf = files.Count > 1 || request.ReturnOriginalWithInvoice;
 
-        return File(processedStream, "application/pdf", $"cropped-{request.Platform}.pdf");
+        if (!shouldMergeManyToSinglePdf)
+        {
+            await using var inputStream = files[0].OpenReadStream();
+            var processedStream = await _pdfCropService.CropAsync(
+                inputStream,
+                request.Platform,
+                request.KeepInvoiceOnSeparatePage,
+                request.PickupSorting,
+                request.SkuSorting,
+                request.OrderNumberSorting,
+                request.LabelText,
+                cancellationToken);
+
+            var singleName = request.Platform.Equals("meesho", StringComparison.OrdinalIgnoreCase)
+                ? $"MeeshoCrop_{DateTime.Now:yyyy-MM-dd}.pdf"
+                : $"cropped-{request.Platform}.pdf";
+
+            return File(processedStream, "application/pdf", singleName);
+        }
+
+        // Merge many uploads into one output PDF (no ZIP).
+        var mergedOutput = new MemoryStream();
+        using (var writer = new PdfWriter(mergedOutput))
+        using (var destinationDocument = new PdfDocument(writer))
+        {
+            // Keep the underlying MemoryStream open so we can rewind and return it.
+            writer.SetCloseStream(false);
+            var merger = new PdfMerger(destinationDocument);
+
+            foreach (var file in files)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await using var inputStream = file.OpenReadStream();
+                var croppedStream = await _pdfCropService.CropAsync(
+                    inputStream,
+                    request.Platform,
+                    request.KeepInvoiceOnSeparatePage,
+                    request.PickupSorting,
+                    request.SkuSorting,
+                    request.OrderNumberSorting,
+                    request.LabelText,
+                    cancellationToken);
+
+                croppedStream.Position = 0;
+                using (var croppedReader = new PdfReader(croppedStream))
+                using (var croppedDoc = new PdfDocument(croppedReader))
+                {
+                    merger.Merge(croppedDoc, 1, croppedDoc.GetNumberOfPages());
+                }
+
+                // If the user wants the original file (with invoice), append it into the same merged PDF.
+                if (request.ReturnOriginalWithInvoice)
+                {
+                    await using var originalStream = file.OpenReadStream();
+                    using (var originalReader = new PdfReader(originalStream))
+                    using (var originalDoc = new PdfDocument(originalReader))
+                    {
+                        merger.Merge(originalDoc, 1, originalDoc.GetNumberOfPages());
+                    }
+                }
+            }
+        }
+
+        mergedOutput.Position = 0;
+        var mergedName = request.Platform.Equals("meesho", StringComparison.OrdinalIgnoreCase)
+            ? $"MeeshoCrop_{DateTime.Now:yyyy-MM-dd}.pdf"
+            : $"cropped-{request.Platform}.pdf";
+        return File(mergedOutput, "application/pdf", mergedName);
     }
 }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService, PlatformType } from '../../services/pdf.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 type ProcessingHistoryItem = {
   id: string;
@@ -12,6 +13,8 @@ type ProcessingHistoryItem = {
   sourceFileName: string;
   outputBlob: Blob;
   outputUrl: string;
+  outputFileName: string;
+  outputMimeType: string;
 };
 
 @Component({
@@ -89,14 +92,58 @@ type ProcessingHistoryItem = {
               (drop)="onDrop($event)"
             >
               <div class="text-sm font-extrabold text-slate-900">{{ platformLabel }} upload</div>
-              <p class="mt-2 text-sm leading-7 text-slate-600">{{ selectedFile?.name || uploadHint }}</p>
-              <input class="mt-4 w-full text-sm" type="file" accept="application/pdf" (change)="onFileInput($event)" />
+              <p class="mt-2 text-sm leading-7 text-slate-600">{{ selectedFilesLabel || uploadHint }}</p>
+              <input
+                class="mt-4 w-full text-sm"
+                type="file"
+                accept="application/pdf"
+                [attr.multiple]="platform === 'meesho' ? '' : null"
+                (change)="onFileInput($event)"
+              />
             </div>
 
-            <label class="mt-4 flex items-center gap-3 rounded-2xl border border-slate-900/10 bg-white px-4 py-3 text-sm font-semibold text-slate-700">
-              <input type="checkbox" class="size-4 accent-blue-600" [(ngModel)]="keepInvoiceOnSeparatePage" />
-              <span>Keep invoice on separate page</span>
-            </label>
+            <div class="mt-4 rounded-2xl border border-slate-900/10 bg-white px-4 py-4">
+              <div class="text-sm font-extrabold text-slate-900">Label Options</div>
+              <div *ngIf="platform === 'meesho'" class="mt-3 grid gap-3 sm:grid-cols-2">
+                <label class="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                  <input type="checkbox" class="size-4 accent-blue-600" [(ngModel)]="pickupSorting" />
+                  <span>Pickup Sorting</span>
+                </label>
+                <label class="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                  <input type="checkbox" class="size-4 accent-blue-600" [(ngModel)]="skuSorting" />
+                  <span>SKU Sorting</span>
+                </label>
+                <label class="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                  <input type="checkbox" class="size-4 accent-blue-600" [(ngModel)]="orderNumberSorting" />
+                  <span>Order Number</span>
+                </label>
+                <label class="flex items-center gap-3 text-sm font-semibold text-slate-700">
+                  <input type="checkbox" class="size-4 accent-blue-600" [(ngModel)]="returnOriginalWithInvoice" />
+                  <span>Original File (with invoice)</span>
+                </label>
+              </div>
+
+              <label class="mt-3 flex items-center gap-3 text-sm font-semibold text-slate-700">
+                <input type="checkbox" class="size-4 accent-blue-600" [(ngModel)]="keepInvoiceOnSeparatePage" />
+                <span>Keep invoice on separate page</span>
+              </label>
+
+              <label *ngIf="platform === 'meesho'" class="mt-3 flex items-start gap-3 text-sm font-semibold text-slate-700">
+                <input type="checkbox" class="mt-1 size-4 accent-blue-600" [(ngModel)]="printTextOnLabel" />
+                <span>
+                  Print text on label
+                  <span class="block text-xs font-semibold text-slate-500">(e.g. Dispatch on 04-16-2026, Thank you for choosing us...)</span>
+                </span>
+              </label>
+
+              <input
+                *ngIf="platform === 'meesho' && printTextOnLabel"
+                class="mt-3 w-full rounded-xl border border-slate-900/10 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                type="text"
+                placeholder="Enter text to print on label"
+                [(ngModel)]="labelText"
+              />
+            </div>
 
             <div *ngIf="errorMessage" class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
               {{ errorMessage }}
@@ -189,10 +236,16 @@ type ProcessingHistoryItem = {
 })
 export class ToolPageComponent implements OnDestroy {
   platform: PlatformType = 'meesho';
-  selectedFile: File | null = null;
+  selectedFiles: File[] = [];
   processedBlob: Blob | null = null;
   private processedBlobUrl: string | null = null;
   keepInvoiceOnSeparatePage = false;
+  pickupSorting = false;
+  skuSorting = true;
+  orderNumberSorting = false;
+  returnOriginalWithInvoice = false;
+  printTextOnLabel = false;
+  labelText = '';
   progress = 0;
   isProcessing = false;
   isDragging = false;
@@ -253,6 +306,18 @@ export class ToolPageComponent implements OnDestroy {
     return `Drag & drop your ${this.platformLabel} PDF here or choose it manually.`;
   }
 
+  get selectedFilesLabel(): string {
+    if (this.selectedFiles.length === 0) {
+      return '';
+    }
+
+    if (this.selectedFiles.length === 1) {
+      return this.selectedFiles[0]?.name ?? '';
+    }
+
+    return `${this.selectedFiles.length} files selected`;
+  }
+
   get actionLabel(): string {
     return 'Prepare Shipping Labels';
   }
@@ -262,8 +327,8 @@ export class ToolPageComponent implements OnDestroy {
   }
 
   onFileInput(event: Event): void {
-    const file = (event.target as HTMLInputElement).files?.[0] ?? null;
-    this.selectFile(file);
+    const files = Array.from((event.target as HTMLInputElement).files ?? []);
+    this.selectFiles(files);
   }
 
   onDragOver(event: DragEvent): void {
@@ -279,13 +344,13 @@ export class ToolPageComponent implements OnDestroy {
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.isDragging = false;
-    const file = event.dataTransfer?.files?.[0] ?? null;
-    this.selectFile(file);
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    this.selectFiles(files);
   }
 
   processFile(): void {
-    if (!this.selectedFile) {
-      this.errorMessage = 'Please select a PDF file first.';
+    if (this.selectedFiles.length === 0) {
+      this.errorMessage = 'Please select one or more PDF files first.';
       return;
     }
 
@@ -295,7 +360,17 @@ export class ToolPageComponent implements OnDestroy {
     this.releaseProcessedBlobUrl();
     this.progress = 0;
 
-    this.pdfService.cropLabel(this.selectedFile, this.platform, this.keepInvoiceOnSeparatePage).subscribe({
+    this.pdfService
+      .cropLabels(this.selectedFiles, {
+        platform: this.platform,
+        keepInvoiceOnSeparatePage: this.keepInvoiceOnSeparatePage,
+        pickupSorting: this.pickupSorting,
+        skuSorting: this.skuSorting,
+        orderNumberSorting: this.orderNumberSorting,
+        returnOriginalWithInvoice: this.returnOriginalWithInvoice,
+        labelText: this.printTextOnLabel ? this.labelText : ''
+      })
+      .subscribe({
       next: (event) => {
         this.progress = event.progress;
         if (event.blob) {
@@ -305,20 +380,29 @@ export class ToolPageComponent implements OnDestroy {
             id: this.createId(),
             platform: this.platform,
             createdAt: new Date(),
-            sourceFileName: this.selectedFile?.name ?? `label-${this.platform}.pdf`,
+            sourceFileName:
+              this.selectedFiles.length === 1
+                ? (this.selectedFiles[0]?.name ?? `label-${this.platform}.pdf`)
+                : `${this.selectedFiles.length} files`,
             outputBlob: event.blob,
-            outputUrl: this.processedBlobUrl
+            outputUrl: this.processedBlobUrl,
+            outputFileName: event.fileName ?? `cropped-${this.platform}.${event.mimeType === 'application/zip' ? 'zip' : 'pdf'}`,
+            outputMimeType: event.mimeType ?? 'application/octet-stream'
           };
 
           this.history = [historyItem, ...this.history].slice(0, 8);
-          this.setPreview(historyItem);
+          if (historyItem.outputMimeType === 'application/pdf') {
+            this.setPreview(historyItem);
+          } else {
+            this.previewUrl = null;
+          }
 
           // Auto-download immediately when processing completes.
-          this.downloadBlob(event.blob, `cropped-${this.platform}.pdf`);
+          this.downloadBlob(event.blob, historyItem.outputFileName);
         }
       },
-      error: () => {
-        this.errorMessage = 'Processing failed. Please try again.';
+      error: (err) => {
+        void this.setErrorFromHttp(err);
         this.isProcessing = false;
       },
       complete: () => {
@@ -345,7 +429,7 @@ export class ToolPageComponent implements OnDestroy {
   }
 
   downloadHistory(item: ProcessingHistoryItem): void {
-    this.downloadBlob(item.outputBlob, `cropped-${item.platform}.pdf`);
+    this.downloadBlob(item.outputBlob, item.outputFileName || `cropped-${item.platform}.pdf`);
   }
 
   ngOnDestroy(): void {
@@ -355,21 +439,27 @@ export class ToolPageComponent implements OnDestroy {
     }
   }
 
-  private selectFile(file: File | null): void {
-    if (!file) {
+  private selectFiles(files: File[]): void {
+    if (files.length === 0) {
       return;
     }
 
-    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    const pdfFiles = files.filter((file) => file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf'));
 
-    if (!isPdf) {
+    if (pdfFiles.length !== files.length) {
       this.errorMessage = 'Only PDF files are allowed.';
-      this.selectedFile = null;
+      this.selectedFiles = [];
+      return;
+    }
+
+    if (this.platform !== 'meesho' && pdfFiles.length > 1) {
+      this.errorMessage = `${this.platformLabel} currently supports only a single PDF at a time.`;
+      this.selectedFiles = [pdfFiles[0]];
       return;
     }
 
     this.errorMessage = '';
-    this.selectedFile = file;
+    this.selectedFiles = pdfFiles;
   }
 
   private releaseProcessedBlobUrl(): void {
@@ -391,5 +481,33 @@ export class ToolPageComponent implements OnDestroy {
 
   private createId(): string {
     return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  private async setErrorFromHttp(err: unknown): Promise<void> {
+    const fallback = 'Processing failed. Please try again.';
+
+    if (!(err instanceof HttpErrorResponse)) {
+      this.errorMessage = fallback;
+      return;
+    }
+
+    // When `responseType: "blob"`, backend error bodies arrive as a Blob.
+    const errorBlob = err.error;
+    if (errorBlob instanceof Blob) {
+      try {
+        const text = (await errorBlob.text()).trim();
+        this.errorMessage = text || fallback;
+        return;
+      } catch {
+        // ignore and fall through
+      }
+    }
+
+    if (typeof err.error === 'string' && err.error.trim()) {
+      this.errorMessage = err.error.trim();
+      return;
+    }
+
+    this.errorMessage = err.message?.trim() ? err.message : fallback;
   }
 }

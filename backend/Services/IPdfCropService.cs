@@ -6,5 +6,9 @@ public interface IPdfCropService
         Stream inputPdfStream,
         string platform,
         bool keepInvoiceOnSeparatePage,
+        bool pickupSorting,
+        bool skuSorting,
+        bool orderNumberSorting,
+        string? labelText,
         CancellationToken cancellationToken = default);
 }

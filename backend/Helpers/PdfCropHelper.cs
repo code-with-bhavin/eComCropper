@@ -4,30 +4,35 @@ namespace EComCropper.Api.Helpers;
 
 public static class PdfCropHelper
 {
-    private static readonly Rectangle A4PageSize = new(0, 0, 595, 842);
-    private static readonly Rectangle HalfPageSize = new(0, 0, 595, 421);
+    // Tuned to match the user's "perfect" Meesho output PDF.
+    // Reference crop box: [0, 471.31, 595, 370.69] on A4 [0,0,595,842]
+    private const float MeeshoLabelCropY = 471.31f;
+    private const float MeeshoLabelHeight = 370.69f;
+    private const float MeeshoInvoiceY = 200.22f;
+    private const float MeeshoInvoiceHeight = 291.7f;
 
-    // Extracted from the provided ecropper Meesho PDF.
-    private static readonly Rectangle MeeshoLabelCropBox = new(0, 471.92f, 800, 1000);
-    private static readonly Rectangle MeeshoInvoiceCropBox = new(0, 200.22f, 800, 291.7f);
-
-    public static IReadOnlyList<CropRegion> GetCropRegions(string platform, bool keepInvoiceOnSeparatePage) =>
+    public static IReadOnlyList<CropRegion> GetCropRegions(string platform, bool keepInvoiceOnSeparatePage, Rectangle sourcePageSize) =>
         platform.ToLowerInvariant() switch
         {
-            "meesho" => BuildMeeshoRegions(keepInvoiceOnSeparatePage),
-            "flipkart" or "amazon" => BuildDefaultHalfPageRegions(keepInvoiceOnSeparatePage),
+            "meesho" => BuildMeeshoRegions(keepInvoiceOnSeparatePage, sourcePageSize),
+            "flipkart" or "amazon" => BuildDefaultHalfPageRegions(keepInvoiceOnSeparatePage, sourcePageSize),
             _ => throw new ArgumentException("Unsupported platform type.")
         };
 
-    private static IReadOnlyList<CropRegion> BuildMeeshoRegions(bool keepInvoiceOnSeparatePage)
+    private static IReadOnlyList<CropRegion> BuildMeeshoRegions(bool keepInvoiceOnSeparatePage, Rectangle pageSize)
     {
+        var normalizedPage = new Rectangle(0, 0, pageSize.GetWidth(), pageSize.GetHeight());
+        var pageWidth = normalizedPage.GetWidth();
+        var labelY = Math.Max(0, Math.Min(normalizedPage.GetHeight(), MeeshoLabelCropY));
+        var labelHeight = Math.Max(0, Math.Min(normalizedPage.GetHeight() - labelY, MeeshoLabelHeight));
+
         var regions = new List<CropRegion>
         {
             new()
             {
-                SourceBounds = A4PageSize,
-                OutputPageSize = A4PageSize,
-                OutputCropBox = MeeshoLabelCropBox,
+                SourceBounds = normalizedPage,
+                OutputPageSize = normalizedPage,
+                OutputCropBox = new Rectangle(0, labelY, pageWidth, labelHeight),
                 RenderMode = CropRenderMode.OriginalPageWithCropBox
             }
         };
@@ -36,9 +41,9 @@ public static class PdfCropHelper
         {
             regions.Add(new CropRegion
             {
-                SourceBounds = A4PageSize,
-                OutputPageSize = A4PageSize,
-                OutputCropBox = MeeshoInvoiceCropBox,
+                SourceBounds = normalizedPage,
+                OutputPageSize = normalizedPage,
+                OutputCropBox = new Rectangle(0, MeeshoInvoiceY, pageWidth, MeeshoInvoiceHeight),
                 RenderMode = CropRenderMode.OriginalPageWithCropBox
             });
         }
@@ -46,14 +51,18 @@ public static class PdfCropHelper
         return regions;
     }
 
-    private static IReadOnlyList<CropRegion> BuildDefaultHalfPageRegions(bool keepInvoiceOnSeparatePage)
+    private static IReadOnlyList<CropRegion> BuildDefaultHalfPageRegions(bool keepInvoiceOnSeparatePage, Rectangle pageSize)
     {
+        var normalizedPage = new Rectangle(0, 0, pageSize.GetWidth(), pageSize.GetHeight());
+        var halfHeight = normalizedPage.GetHeight() / 2f;
+        var halfPageSize = new Rectangle(0, 0, normalizedPage.GetWidth(), halfHeight);
+
         var regions = new List<CropRegion>
         {
             new()
             {
-                SourceBounds = new Rectangle(0, 421, 595, 421),
-                OutputPageSize = HalfPageSize,
+                SourceBounds = new Rectangle(0, halfHeight, normalizedPage.GetWidth(), halfHeight),
+                OutputPageSize = halfPageSize,
                 RenderMode = CropRenderMode.TranslatedCrop
             }
         };
@@ -62,8 +71,8 @@ public static class PdfCropHelper
         {
             regions.Add(new CropRegion
             {
-                SourceBounds = new Rectangle(0, 0, 595, 421),
-                OutputPageSize = HalfPageSize,
+                SourceBounds = new Rectangle(0, 0, normalizedPage.GetWidth(), halfHeight),
+                OutputPageSize = halfPageSize,
                 RenderMode = CropRenderMode.TranslatedCrop
             });
         }
