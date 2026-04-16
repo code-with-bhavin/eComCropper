@@ -4,149 +4,147 @@ import { RouterLink } from '@angular/router';
 @Component({
   standalone: true,
   imports: [RouterLink],
-  styles: [
-    `
-      .hero {
-        display: grid;
-        grid-template-columns: 1.1fr 0.9fr;
-        gap: 1.25rem;
-      }
-
-      .hero-card {
-        padding: 1.6rem;
-        border-radius: 28px;
-        border: 1px solid rgba(15, 23, 42, 0.08);
-        background:
-          radial-gradient(circle at top left, rgba(15, 108, 189, 0.14), transparent 32%),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 247, 251, 0.94));
-        box-shadow: 0 30px 80px rgba(15, 23, 42, 0.08);
-      }
-
-      .eyebrow {
-        display: inline-flex;
-        padding: 0.34rem 0.72rem;
-        border-radius: 999px;
-        background: #d9ecff;
-        color: #0b4f8a;
-        font-size: 0.82rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-
-      .route-grid,
-      .steps {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 1rem;
-      }
-
-      .route-card,
-      .step-card {
-        padding: 1.15rem;
-        border-radius: 22px;
-        background: rgba(255, 255, 255, 0.88);
-        border: 1px solid rgba(15, 23, 42, 0.08);
-        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
-      }
-
-      .route-card h3 {
-        margin: 0;
-        font-size: 1.08rem;
-        color: #102a43;
-      }
-
-      .route-card p,
-      .step-card p {
-        margin: 0.55rem 0 0;
-        color: #52606d;
-        line-height: 1.6;
-      }
-
-      .step-no {
-        display: inline-grid;
-        place-items: center;
-        width: 2rem;
-        height: 2rem;
-        border-radius: 999px;
-        background: #0f6cbd;
-        color: #fff;
-        font-weight: 800;
-      }
-
-      @media (max-width: 900px) {
-        .hero,
-        .route-grid,
-        .steps {
-          grid-template-columns: 1fr;
-        }
-      }
-    `
-  ],
   template: `
     <section class="container page-wrap">
-      <div class="hero">
-        <div class="hero-card">
-          <span class="eyebrow">Marketplace Crop Studio</span>
-          <h1 class="section-title" style="font-size:2.65rem;line-height:1.04;margin-top:1rem;">Dedicated crop pages instead of one generic tool.</h1>
-          <p class="section-subtitle" style="font-size:1.04rem;max-width:54ch;">
-            Meesho, Flipkart ane Amazon mate separate route-based pages che, etle flow vadhu focused lage che ane pachi darek marketplace mate crop logic ane UI independently tune kari shakay.
+      <div class="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+        <div class="card rounded-[28px] border-slate-900/10 bg-white/90 p-6 shadow-soft">
+          <span class="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-700">
+            Shipping Label Cropper
+          </span>
+          <h1 class="mt-4 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+            Crop and prepare e-commerce shipping labels from PDFs—instantly.
+          </h1>
+          <p class="mt-3 max-w-[62ch] text-base leading-7 text-slate-600">
+            Pick your marketplace, upload the label PDF, click “Prepare Shipping Labels”, and download a clean, print-ready file in seconds. No
+            login. No data saved.
           </p>
-          <div style="display:flex;gap:0.8rem;flex-wrap:wrap;margin-top:1.15rem;">
-            <a class="btn btn-primary" routerLink="/crop/meesho">Open Meesho</a>
-            <a class="btn" routerLink="/crop/flipkart">Open Flipkart</a>
-            <a class="btn" routerLink="/crop/amazon">Open Amazon</a>
+          <div class="mt-5 flex flex-wrap gap-3">
+            <a class="btn btn-primary" routerLink="/crop/flipkart">Crop Flipkart Labels</a>
+            <a class="btn" routerLink="/crop/meesho">Crop Meesho Labels</a>
+            <a class="btn" routerLink="/crop/amazon">Crop Amazon Labels</a>
           </div>
         </div>
 
-        <div class="hero-card">
-          <div class="card" style="border:none;box-shadow:none;background:#0f172a;color:#f8fafc;">
-            <div style="font-size:0.86rem;opacity:0.76;">Route Pattern</div>
-            <div style="margin-top:0.4rem;font-size:1.75rem;font-weight:800;">/crop/:marketplace</div>
-            <div style="margin-top:0.65rem;color:#cbd5e1;line-height:1.6;">
-              Cleaner UI, direct links, and future marketplace-specific crop presets without cluttering one shared page.
+        <div class="card rounded-[28px] border-slate-900/10 bg-white/90 p-6 shadow-soft">
+          <div class="rounded-2xl bg-slate-900 px-5 py-5 text-slate-50">
+            <div class="text-sm font-semibold text-slate-300">Works best for</div>
+            <div class="mt-2 text-xl font-extrabold leading-snug tracking-tight">
+              High-volume sellers who want fast, consistent label printing.
+            </div>
+            <div class="mt-3 text-sm leading-7 text-slate-300">
+              Marketplace-first pages with a single, obvious flow: upload → prepare → download.
             </div>
           </div>
-          <div style="margin-top:1rem;display:grid;gap:0.75rem;">
-            <div class="card" style="border:none;box-shadow:none;background:#fff;">Meesho route: <strong>/crop/meesho</strong></div>
-            <div class="card" style="border:none;box-shadow:none;background:#fff;">Flipkart route: <strong>/crop/flipkart</strong></div>
-            <div class="card" style="border:none;box-shadow:none;background:#fff;">Amazon route: <strong>/crop/amazon</strong></div>
+          <div class="mt-4 grid gap-3">
+            <div class="rounded-2xl border border-slate-900/10 bg-white px-5 py-4 shadow-sm">
+              <div class="inline-flex rounded-full border border-slate-900/10 bg-white px-3 py-1 text-sm font-extrabold text-slate-700">
+                Unlimited
+              </div>
+              <div class="mt-2 text-sm leading-7 text-slate-600">Process multi-page label PDFs without limits.</div>
+            </div>
+            <div class="rounded-2xl border border-slate-900/10 bg-white px-5 py-4 shadow-sm">
+              <div class="inline-flex rounded-full border border-slate-900/10 bg-white px-3 py-1 text-sm font-extrabold text-slate-700">
+                Fast
+              </div>
+              <div class="mt-2 text-sm leading-7 text-slate-600">Optimized upload + processing feedback.</div>
+            </div>
+            <div class="rounded-2xl border border-slate-900/10 bg-white px-5 py-4 shadow-sm">
+              <div class="inline-flex rounded-full border border-slate-900/10 bg-white px-3 py-1 text-sm font-extrabold text-slate-700">
+                Privacy
+              </div>
+              <div class="mt-2 text-sm leading-7 text-slate-600">No login, no user history stored on our side.</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="route-grid" style="margin-top:1rem;">
-        <div class="route-card">
-          <h3>Meesho Crop Page</h3>
-          <p>Invoice-aware Meesho flow with dedicated route and label-prep copy.</p>
-          <div style="margin-top:0.9rem;"><a class="btn btn-primary" routerLink="/crop/meesho">Go to Meesho</a></div>
+      <div class="mt-5 grid gap-4 lg:grid-cols-3">
+        <div
+          class="overflow-hidden rounded-2xl border border-slate-900/10 bg-white/90 shadow-soft transition duration-200 hover:-translate-y-1 hover:shadow-lift"
+        >
+          <div
+            class="grid h-32 place-items-center bg-gradient-to-b from-slate-100 to-slate-200/90 [background-image:radial-gradient(circle_at_top_left,rgba(37,99,235,0.12),transparent_55%),linear-gradient(180deg,rgba(243,244,246,0.96),rgba(229,231,235,0.92))]"
+          >
+            <img class="h-[88px] w-[88px] drop-shadow-lg" src="/platforms/amazon.svg" alt="Amazon" loading="lazy" />
+          </div>
+          <div class="p-5">
+            <h3 class="text-base font-extrabold text-slate-900">Amazon</h3>
+            <p class="mt-2 text-sm leading-7 text-slate-600">
+              Effortlessly streamline your Amazon shipping label preparation with our intuitive, one-click cropping solution.
+            </p>
+            <div class="mt-4">
+              <a class="btn btn-primary w-full" routerLink="/crop/amazon">Crop Amazon Labels</a>
+            </div>
+          </div>
         </div>
-        <div class="route-card">
-          <h3>Flipkart Crop Page</h3>
-          <p>Separate page so Flipkart crop rules and messaging can evolve independently.</p>
-          <div style="margin-top:0.9rem;"><a class="btn btn-primary" routerLink="/crop/flipkart">Go to Flipkart</a></div>
+
+        <div
+          class="overflow-hidden rounded-2xl border border-slate-900/10 bg-white/90 shadow-soft transition duration-200 hover:-translate-y-1 hover:shadow-lift"
+        >
+          <div
+            class="grid h-32 place-items-center bg-gradient-to-b from-slate-100 to-slate-200/90 [background-image:radial-gradient(circle_at_top_left,rgba(37,99,235,0.12),transparent_55%),linear-gradient(180deg,rgba(243,244,246,0.96),rgba(229,231,235,0.92))]"
+          >
+            <img class="h-[88px] w-[88px] drop-shadow-lg" src="/platforms/flipkart.svg" alt="Flipkart" loading="lazy" />
+          </div>
+          <div class="p-5">
+            <h3 class="text-base font-extrabold text-slate-900">Flipkart</h3>
+            <p class="mt-2 text-sm leading-7 text-slate-600">
+              Effortlessly streamline your Flipkart shipping label preparation with our intuitive, one-click cropping solution.
+            </p>
+            <div class="mt-4">
+              <a class="btn btn-primary w-full" routerLink="/crop/flipkart">Crop Flipkart Labels</a>
+            </div>
+          </div>
         </div>
-        <div class="route-card">
-          <h3>Amazon Crop Page</h3>
-          <p>Independent Amazon workflow, ready for future marketplace-specific tuning.</p>
-          <div style="margin-top:0.9rem;"><a class="btn btn-primary" routerLink="/crop/amazon">Go to Amazon</a></div>
+
+        <div
+          class="overflow-hidden rounded-2xl border border-slate-900/10 bg-white/90 shadow-soft transition duration-200 hover:-translate-y-1 hover:shadow-lift"
+        >
+          <div
+            class="grid h-32 place-items-center bg-gradient-to-b from-slate-100 to-slate-200/90 [background-image:radial-gradient(circle_at_top_left,rgba(37,99,235,0.12),transparent_55%),linear-gradient(180deg,rgba(243,244,246,0.96),rgba(229,231,235,0.92))]"
+          >
+            <img class="h-[88px] w-[88px] drop-shadow-lg" src="/platforms/meesho.svg" alt="Meesho" loading="lazy" />
+          </div>
+          <div class="p-5">
+            <h3 class="text-base font-extrabold text-slate-900">Meesho</h3>
+            <p class="mt-2 text-sm leading-7 text-slate-600">
+              Effortlessly streamline your Meesho shipping label preparation with our intuitive, one-click cropping solution.
+            </p>
+            <div class="mt-4">
+              <a class="btn btn-primary w-full" routerLink="/crop/meesho">Crop Meesho Labels</a>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="card" style="margin-top:1rem;padding:1.35rem;border-radius:24px;">
-        <h2 class="section-title" style="font-size:1.28rem;">How the new flow works</h2>
-        <div class="steps" style="margin-top:1rem;">
-          <div class="step-card">
-            <span class="step-no">1</span>
-            <p>Correct marketplace page par direct land karo.</p>
+      <div class="card mt-5 rounded-3xl p-6">
+        <h2 class="text-lg font-extrabold tracking-tight text-slate-900">Features</h2>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="rounded-2xl border border-slate-900/10 bg-white px-5 py-4 shadow-sm">
+            <div class="font-extrabold text-slate-900">Unlimited</div>
+            <p class="mt-2 text-sm leading-7 text-slate-600">Crop multiple pages in one go and keep moving with your packing workflow.</p>
           </div>
-          <div class="step-card">
-            <span class="step-no">2</span>
-            <p>PDF upload karo ane invoice separate page joiye che ke nai e choose karo.</p>
+          <div class="rounded-2xl border border-slate-900/10 bg-white px-5 py-4 shadow-sm">
+            <div class="font-extrabold text-slate-900">Fast</div>
+            <p class="mt-2 text-sm leading-7 text-slate-600">Upload → prepare → download with clear progress feedback.</p>
           </div>
-          <div class="step-card">
-            <span class="step-no">3</span>
-            <p>Processed output download karo with cleaner route-specific UX.</p>
+          <div class="rounded-2xl border border-slate-900/10 bg-white px-5 py-4 shadow-sm">
+            <div class="font-extrabold text-slate-900">Secure</div>
+            <p class="mt-2 text-sm leading-7 text-slate-600">
+              No login required. Your files are processed for output and not kept as user history.
+            </p>
+          </div>
+          <div class="rounded-2xl border border-slate-900/10 bg-white px-5 py-4 shadow-sm">
+            <div class="font-extrabold text-slate-900">Download</div>
+            <p class="mt-2 text-sm leading-7 text-slate-600">Instant output download as a print-ready PDF.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-900/10 bg-white px-5 py-4 shadow-sm">
+            <div class="font-extrabold text-slate-900">User-friendly</div>
+            <p class="mt-2 text-sm leading-7 text-slate-600">Simple UI designed for sellers—no manual PDF editing needed.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-900/10 bg-white px-5 py-4 shadow-sm">
+            <div class="font-extrabold text-slate-900">Browser-based</div>
+            <p class="mt-2 text-sm leading-7 text-slate-600">Works in your browser on any OS—no software install.</p>
           </div>
         </div>
       </div>

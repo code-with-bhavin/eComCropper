@@ -5,81 +5,67 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
   selector: 'app-navbar',
   standalone: true,
   imports: [RouterLink, RouterLinkActive],
-  styles: [
-    `
-      .nav {
-        background: rgba(255, 255, 255, 0.82);
-        border-bottom: 1px solid rgba(15, 23, 42, 0.08);
-        backdrop-filter: blur(16px);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-      }
-
-      .nav-inner {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        min-height: 62px;
-        gap: 1rem;
-      }
-
-      .brand {
-        text-decoration: none;
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: #102a43;
-        letter-spacing: 0.02em;
-      }
-
-      .links {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-      }
-
-      .links a {
-        text-decoration: none;
-        padding: 0.48rem 0.82rem;
-        border-radius: 999px;
-        color: #52606d;
-        font-size: 0.92rem;
-        transition: background 0.2s ease, color 0.2s ease;
-      }
-
-      .links a:hover {
-        background: #f0f4f8;
-        color: #102a43;
-      }
-
-      .links a.active {
-        background: linear-gradient(135deg, #0f6cbd, #0b4f8a);
-        color: #fff;
-        font-weight: 600;
-      }
-
-      @media (max-width: 700px) {
-        .nav-inner {
-          flex-direction: column;
-          justify-content: center;
-          padding: 0.65rem 0;
-        }
-      }
-    `
-  ],
   template: `
-    <header class="nav">
-      <div class="container nav-inner">
-        <a class="brand" routerLink="/">eComCropper</a>
-        <nav class="links">
-          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-          <a routerLink="/crop/meesho" routerLinkActive="active">Meesho</a>
-          <a routerLink="/crop/flipkart" routerLinkActive="active">Flipkart</a>
-          <a routerLink="/crop/amazon" routerLinkActive="active">Amazon</a>
-          <a routerLink="/about" routerLinkActive="active">About</a>
-          <a routerLink="/privacy" routerLinkActive="active">Privacy</a>
-          <a routerLink="/contact" routerLinkActive="active">Contact</a>
-        </nav>
+    <header class="sticky top-0 z-10 border-b border-slate-900/10 bg-white/75 backdrop-blur-xl">
+      <div class="container">
+        <div class="flex min-h-[64px] flex-col items-start justify-center gap-3 py-3 md:flex-row md:items-center md:justify-between md:gap-6 md:py-0">
+          <a
+            class="inline-flex items-center gap-2 font-extrabold tracking-tight text-slate-900"
+            routerLink="/"
+            aria-label="eComCropper home"
+          >
+            <span class="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-md">
+              EC
+            </span>
+            <span class="text-base">eComCropper</span>
+          </a>
+
+          <nav class="flex flex-wrap gap-2">
+            <a
+              class="rounded-full px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              routerLink="/"
+              routerLinkActive="bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-md"
+              [routerLinkActiveOptions]="{ exact: true }"
+              >Home</a
+            >
+            <a
+              class="rounded-full px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              routerLink="/crop/meesho"
+              routerLinkActive="bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-md"
+              >Meesho</a
+            >
+            <a
+              class="rounded-full px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              routerLink="/crop/flipkart"
+              routerLinkActive="bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-md"
+              >Flipkart</a
+            >
+            <a
+              class="rounded-full px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              routerLink="/crop/amazon"
+              routerLinkActive="bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-md"
+              >Amazon</a
+            >
+            <a
+              class="rounded-full px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              routerLink="/about"
+              routerLinkActive="bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-md"
+              >About</a
+            >
+            <a
+              class="rounded-full px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              routerLink="/privacy"
+              routerLinkActive="bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-md"
+              >Privacy</a
+            >
+            <a
+              class="rounded-full px-3 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              routerLink="/contact"
+              routerLinkActive="bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-md"
+              >Raise Request</a
+            >
+          </nav>
+        </div>
       </div>
     </header>
   `

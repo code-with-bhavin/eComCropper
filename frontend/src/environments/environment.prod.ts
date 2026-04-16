@@ -1,4 +1,12 @@
 export const environment = {
   production: true,
-  apiBaseUrl: '/api'
+  apiBaseUrl: '/api',
+  adsense: {
+    client: '',
+    slots: {
+      leftRail: '',
+      rightRail: '',
+      inContent: ''
+    }
+  }
 };
