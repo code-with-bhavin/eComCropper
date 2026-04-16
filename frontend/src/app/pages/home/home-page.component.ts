@@ -65,7 +65,7 @@ import { RouterLink } from '@angular/router';
           <div
             class="grid h-32 place-items-center bg-gradient-to-b from-slate-100 to-slate-200/90 [background-image:radial-gradient(circle_at_top_left,rgba(37,99,235,0.12),transparent_55%),linear-gradient(180deg,rgba(243,244,246,0.96),rgba(229,231,235,0.92))]"
           >
-            <img class="h-[88px] w-[88px] drop-shadow-lg" src="/platforms/amazon.svg" alt="Amazon" loading="lazy" />
+            <img class="h-[88px] w-[88px] drop-shadow-lg" src="/platforms/Amazon_logo.png" alt="Amazon" loading="lazy" />
           </div>
           <div class="p-5">
             <h3 class="text-base font-extrabold text-slate-900">Amazon</h3>
@@ -84,7 +84,7 @@ import { RouterLink } from '@angular/router';
           <div
             class="grid h-32 place-items-center bg-gradient-to-b from-slate-100 to-slate-200/90 [background-image:radial-gradient(circle_at_top_left,rgba(37,99,235,0.12),transparent_55%),linear-gradient(180deg,rgba(243,244,246,0.96),rgba(229,231,235,0.92))]"
           >
-            <img class="h-[88px] w-[88px] drop-shadow-lg" src="/platforms/flipkart.svg" alt="Flipkart" loading="lazy" />
+            <img class="h-[88px] w-[88px] drop-shadow-lg" src="/platforms/Flipkart_logo.png" alt="Flipkart" loading="lazy" />
           </div>
           <div class="p-5">
             <h3 class="text-base font-extrabold text-slate-900">Flipkart</h3>
@@ -103,7 +103,7 @@ import { RouterLink } from '@angular/router';
           <div
             class="grid h-32 place-items-center bg-gradient-to-b from-slate-100 to-slate-200/90 [background-image:radial-gradient(circle_at_top_left,rgba(37,99,235,0.12),transparent_55%),linear-gradient(180deg,rgba(243,244,246,0.96),rgba(229,231,235,0.92))]"
           >
-            <img class="h-[88px] w-[88px] drop-shadow-lg" src="/platforms/meesho.svg" alt="Meesho" loading="lazy" />
+            <img class="h-[88px] w-[88px] drop-shadow-lg" src="/platforms/Meesho_logo.png" alt="Meesho" loading="lazy" />
           </div>
           <div class="p-5">
             <h3 class="text-base font-extrabold text-slate-900">Meesho</h3>
